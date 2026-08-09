@@ -49,3 +49,4 @@ javac -d out-path/ class-path/file-name
 java -cp out-path/ file-name
 java class-path/file-name
 ```
+[Lesson 1 - APIs and HTTP: How Software Talks to Software](https://docs.google.com/document/d/1uFTeQxj1xVXnULwXATzOxK9kDHhRN6AZP4m9QnjtL2Q/edit?usp=sharing).
