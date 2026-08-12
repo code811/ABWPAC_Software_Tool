@@ -90,3 +90,6 @@ The product should correctly produce meaningful data for analysis, reduce the ti
 - How should each dataset be identified as; personal name or internship gmail account?
 - What happens when authorization is revoked or expires after an employee previously connected their Gmail account?
 - Does the Director need to manually inspect every qualifying email, or only emails selected during an audit?
+- If using a template; should this process be streamlined as well?
+- If automating sending emails, what is needed from the user to do so?
+- If automating sending emails, how should the program receive this information?
