@@ -10,8 +10,7 @@ The Outreach Department Director relies on self-reporting and manual bookkeeping
 - Outreach Employees
 
 ## Current Process
-[Need further clarification done with "stakeholder"]
-The Outreach Department depends on individual employees, each responsible for their own bookkeeping on the amount of emails they've sent for the week.
+The Outreach Department depends on individual employees, each responsible for their own bookkeeping on the amount of emails they've sent for the week. It is a high-trust system, which relies heavily on individual promises.
 
 ## Desired Outcome
 Employees no longer have to manually keep track of and log their activities, and the Outreach Director can be more confident about the volume produced by the department.
@@ -76,6 +75,9 @@ The product should correctly produce meaningful data for analysis, reduce the ti
 - Program is given authorization
 - Outreach Director wants weekly reports
 - Employee personal Gmail accounts created for this internship are properly used for oureach
+- One sent Gmail Message = one sent email
+- Valid outreach email follows template
+- Time frame: Monday-Sunday; reports are created on Monday (May need to update and ask if it should be switched to Saturday)
 
 ## Open Questions
 - What objectively qualifies an email as legitimate outreach?
@@ -93,3 +95,4 @@ The product should correctly produce meaningful data for analysis, reduce the ti
 - If using a template; should this process be streamlined as well?
 - If automating sending emails, what is needed from the user to do so?
 - If automating sending emails, how should the program receive this information?
+- Do multiple replies in one thread count for one response or multiple?
