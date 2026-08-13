@@ -63,8 +63,8 @@ The product should correctly produce meaningful data for analysis, reduce the ti
 ## Risks and Assumptions
 ### Risk: 
 - Data leak
-- Privacy
-- Authorization
+- Privacy; the program may require more authority to access user-sensitive infomation on emails
+- Authorization; the program may require use of restricted scopes to access metadata, the program must handle additional verification/security requirements depending on the application architecture and how the sensitive data is handled
 - Accuracy
 - Adoption/giving consent
 - API dependency
