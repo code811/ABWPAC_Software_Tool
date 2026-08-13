@@ -56,7 +56,7 @@ git log #--oneline --graph
 git status #--short
 git diff #--staged --HEAD~#
 git add file-path/file-name
-git commit -m "comment"
+git commit -m "comment" # || git commit --amend (--no-edit || -m "comment")
 git branch branch-name
 git branch --list
 git checkout #branch-name || commit-id
