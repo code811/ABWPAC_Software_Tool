@@ -4,3 +4,27 @@
  * This is a general purpose Gradle build.
  * Learn more about Gradle by exploring our Samples at https://docs.gradle.org/9.7.0/samples
  */
+
+plugins {
+    id 'application'
+}
+
+repositories {
+    mavenCentral()
+}
+
+application {
+    mainClass = 'gmailapi.Main'
+}
+
+
+
+/* Telling Gradle your Java code is located inside a simple root "src" folder instead of creating main/java/ under src/
+sourceSets {
+    main {
+        java {
+            srcDirs = ['src']
+        }
+    }
+}
+*/
