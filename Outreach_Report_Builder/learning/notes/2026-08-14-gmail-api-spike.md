@@ -35,7 +35,19 @@ gradle init --type basic
 ./gradlew tasks
 ./gradlew build
 ./gradlew test
+
 ./gradlew dependencies
+#compileClasspath
+#    libraries needed while javac compiles main code
+#
+#runtimeClasspath
+#    libraries needed while the application executes
+#
+#testCompileClasspath
+#    libraries needed while tests compile
+#
+#testRuntimeClasspath
+#    libraries needed while tests execute
 
 # Gradle build.gradle configured id 'application'
 ./gradlew compileJava

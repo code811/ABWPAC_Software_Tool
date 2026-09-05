@@ -12,3 +12,8 @@ build/
 # OS specific files
 .DS_Store
 Thumbs.db
+
+# Secrets
+credentials.json
+client_secret*.json
+tokens/
