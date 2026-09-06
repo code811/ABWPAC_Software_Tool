@@ -10,7 +10,9 @@ import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.util.store.FileDataStoreFactory;
+import com.google.api.services.gmail.Gmail;
 import com.google.api.services.gmail.GmailScopes;
+import com.google.api.services.gmail.model.Profile;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -23,6 +25,8 @@ import java.util.List;
 
 /** Runs a local OAuth authorization spike for the Gmail API. */
 public class Main {
+    private static final String APPLICATION_NAME = "Gmail API Spike";
+
     // JSON factory used by Google client libraries to parse OAuth JSON
     private static final JsonFactory JSON_FACTORY = GsonFactory.getDefaultInstance();
 
@@ -40,8 +44,8 @@ public class Main {
      * Runs the installed-application OAuth authorization smoke test.
      *
      * @param args command-line arguments; unused by this spike
-     * @throws IOException if credential loading, token storage, or OAuth I/O fails
-     * @throws GeneralSecurityException if trusted HTTP transport cannot be created
+     * @throws IOException; if credential loading, token storage, or OAuth I/O fails
+     * @throws GeneralSecurityException; if trusted HTTP transport cannot be created
      */
     public static void main(String[] args)
         throws IOException, GeneralSecurityException {
@@ -53,22 +57,49 @@ public class Main {
             GoogleNetHttpTransport.newTrustedTransport();
 
         // Authorization state usable by API client
-        authorize(httpTransport);
+        Credential credential = authorize(httpTransport);
         System.out.println("OAuth authorization completed.");
+
+        // Construct authorized Gmail service
+        Gmail service =
+            new Gmail.Builder(
+                httpTransport,
+                JSON_FACTORY,
+                credential)
+                .setApplicationName(APPLICATION_NAME)
+                .build();
+
+        // Creates `GetProfile` request
+        Profile profile = service.users().getProfile("me").execute(); // Invoke request
+                                                                      // and receives `Profile`
+
+        // Use resource / payload granted from request
+        System.out.printf("""
+            Gmail connection successful.
+            Mailbox messages: %d
+            Mailbox threads: %d""",
+            profile.getMessagesTotal(),
+            profile.getThreadsTotal());
     }
 
     /**
      * Runs the installed-application OAuth flow.
      *
-     * @param httpTransport used for OAuth requests
+     * @param httpTransport; used for OAuth requests
      * @return authorized credential that manages OAuth token state
-     * @throws IOException if authorization or persistence fails
+     * @throws IOException; if authorization or persistence fails
      */
     private static Credential authorize(final NetHttpTransport httpTransport)
         throws IOException {
 
         // Loads the OAuth client configuration downloaded from Google Cloud
-        GoogleClientSecrets clientSecrets = loadClientSecrets();
+        GoogleClientSecrets clientSecrets;
+        try (Reader reader =
+                 Files.newBufferedReader(
+                     CREDENTIALS_FILE_PATH,
+                     StandardCharsets.UTF_8)) {
+            clientSecrets = GoogleClientSecrets.load(JSON_FACTORY, reader);
+        }
 
         // Securely saves and retrieves tokens
         FileDataStoreFactory dataStoreFactory =
@@ -80,8 +111,7 @@ public class Main {
                 httpTransport,
                 JSON_FACTORY,
                 clientSecrets,
-                SCOPES
-            )
+                SCOPES)
                 .setDataStoreFactory(dataStoreFactory)
                 .setAccessType("offline")
                 .build();
@@ -95,20 +125,5 @@ public class Main {
         // Coordinates the installed-app authorization process and returns a Credential
         return new AuthorizationCodeInstalledApp(flow, receiver)
             .authorize("user");
-    }
-
-    /**
-     * Reads the local OAuth client configuration and parses it.
-     *
-     * @return parsed Google OAuth client configuration
-     * @throws IOException if the file cannot be read or parsed
-     */
-    private static GoogleClientSecrets loadClientSecrets() throws IOException {
-        try (Reader reader =
-                 Files.newBufferedReader(
-                     CREDENTIALS_FILE_PATH,
-                     StandardCharsets.UTF_8)) {
-            return GoogleClientSecrets.load(JSON_FACTORY, reader);
-        }
     }
 }
