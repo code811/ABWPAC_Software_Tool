@@ -12,7 +12,8 @@ import com.google.api.client.json.JsonFactory;
 import com.google.api.client.util.store.FileDataStoreFactory;
 import com.google.api.services.gmail.Gmail;
 import com.google.api.services.gmail.GmailScopes;
-import com.google.api.services.gmail.model.Profile;
+import com.google.api.services.gmail.model.ListMessagesResponse;
+import com.google.api.services.gmail.model.Message;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -20,8 +21,11 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.GeneralSecurityException;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /** Runs a local OAuth authorization spike for the Gmail API. */
 public class Main {
@@ -44,8 +48,8 @@ public class Main {
      * Runs the installed-application OAuth authorization smoke test.
      *
      * @param args command-line arguments; unused by this spike
-     * @throws IOException; if credential loading, token storage, or OAuth I/O fails
-     * @throws GeneralSecurityException; if trusted HTTP transport cannot be created
+     * @throws IOException if credential loading, token storage, or OAuth I/O fails
+     * @throws GeneralSecurityException if trusted HTTP transport cannot be created
      */
     public static void main(String[] args)
         throws IOException, GeneralSecurityException {
@@ -69,25 +73,30 @@ public class Main {
                 .setApplicationName(APPLICATION_NAME)
                 .build();
 
-        // Creates `GetProfile` request
-        Profile profile = service.users().getProfile("me").execute(); // Invoke request
-                                                                      // and receives `Profile`
+        String query = "after:2026/9/11 before:2026/9/14";
+        long maxResultsPerPage = 55L;
+        List<Message> messageReferences = searchMessageReferences(service, query, maxResultsPerPage);
 
-        // Use resource / payload granted from request
-        System.out.printf("""
-            Gmail connection successful.
-            Mailbox messages: %d
-            Mailbox threads: %d""",
-            profile.getMessagesTotal(),
-            profile.getThreadsTotal());
+        // Experiments with response and runtime test with Gmail UI
+        Set<String> messageIds = new HashSet<>();
+        Set<String> threadIds = new HashSet<>();
+
+        for (Message message : messageReferences) {
+            messageIds.add(message.getId());
+            threadIds.add(message.getThreadId());
+        }
+
+        System.out.println("Total candidate messages enumerated: " + messageReferences.size());
+        System.out.println("Unique message IDs: " + messageIds.size());
+        System.out.println("Unique Threads: " + threadIds.size());
     }
 
     /**
      * Runs the installed-application OAuth flow.
      *
-     * @param httpTransport; used for OAuth requests
+     * @param httpTransport used for OAuth requests
      * @return authorized credential that manages OAuth token state
-     * @throws IOException; if authorization or persistence fails
+     * @throws IOException if authorization or persistence fails
      */
     private static Credential authorize(final NetHttpTransport httpTransport)
         throws IOException {
@@ -125,5 +134,59 @@ public class Main {
         // Coordinates the installed-app authorization process and returns a Credential
         return new AuthorizationCodeInstalledApp(flow, receiver)
             .authorize("user");
+    }
+
+    /**
+     * Searches Gmail for messages matching the supplied query and follows
+     * pagination until no continuation token remains.
+     *
+     * @param service authorized Gmail API client
+     * @param query Gmail search query
+     * @param maxResultsPerPage maximum number of message references requested per page
+     * @return message references matching the query; `Message` objects contain `id` and `threadID`.
+     * @throws IOException if a Gmail API request fails
+     */
+    private static List<Message> searchMessageReferences(Gmail service, String query, long maxResultsPerPage)
+        throws IOException {
+        // Creates a consistent filtered search request
+        Gmail.Users.Messages.List messagesRequest =
+            service.users().messages().list("me")
+//                .setLabelIds(Collections.singletonList("SENT"))
+                .setQ(query)
+                .setMaxResults(maxResultsPerPage);
+
+        ListMessagesResponse messagesResponse;
+        List<Message> allMessages = new ArrayList<>();
+
+        String nextPageToken;
+        boolean hasNextPage;
+        do {
+            // Executes one page; maxResults is an upper bound, not a guaranteed page size.
+            messagesResponse = messagesRequest.execute();
+            System.out.println("Candidate page retrieved.");
+
+            List<Message> pageMessages = messagesResponse.getMessages();
+
+            if (pageMessages != null) {
+                allMessages.addAll(pageMessages);
+            }
+
+            System.out.println("Messages on page: " + (pageMessages != null
+                ? pageMessages.size()
+                : 0));
+
+            nextPageToken = messagesResponse.getNextPageToken();
+            hasNextPage = nextPageToken != null;
+            System.out.println("More pages: " + (hasNextPage
+                ? "yes"
+                : "no"));
+
+            if (hasNextPage) {
+                messagesRequest.setPageToken(nextPageToken);
+            }
+
+        } while (hasNextPage);
+
+        return allMessages;
     }
 }
